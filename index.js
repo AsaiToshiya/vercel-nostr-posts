@@ -18,6 +18,10 @@ const RELAYS = [
   "wss://relay.nostr.bg",
 ];
 
+// HACK: nostr-tools のタイムアウトを長くする
+const temp = setTimeout;
+setTimeout = (func) => temp(func, 30 * 1000);
+
 // 投稿を取得する
 const pool = new SimplePool();
 const posts = await pool.list(RELAYS, [
