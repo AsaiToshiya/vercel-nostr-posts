@@ -12,11 +12,8 @@ const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 const RELAYS = [
   "wss://nos.lol",
   "wss://nostr-pub.wellorder.net",
-  "wss://nostr.bitcoiner.social",
   "wss://nostr.mom",
   "wss://nostr.oxtr.dev",
-  "wss://relay.damus.io",
-  "wss://relay.nostr.bg",
 ];
 
 // HACK: nostr-tools のタイムアウトを長くする
