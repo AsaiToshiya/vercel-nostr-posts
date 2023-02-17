@@ -1,5 +1,6 @@
 import * as fs from "fs";
 
+import { marked } from "marked";
 import pkg from "nostr-tools";
 const { SimplePool } = pkg;
 import "websocket-polyfill";
@@ -60,14 +61,7 @@ const html =
           .map((post) => {
             const date = new Date(post.created_at * 1000);
             const time = date.toLocaleTimeString();
-            const content = post.content
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#039;")
-              .replace(/ /g, "&nbsp;")
-              .replace(/\n/g, "<br />");
+            const content = marked.parse(post.content);
             return `      <h3>${time}</h3>
       <p>${content}</p>`;
           })
