@@ -1,5 +1,7 @@
 import * as fs from "fs";
 
+import * as dotenv from "dotenv";
+dotenv.config();
 import { marked } from "marked";
 import pkg from "nostr-tools";
 const { SimplePool } = pkg;
@@ -9,12 +11,7 @@ import "websocket-polyfill";
 const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 
 // リレー サーバー
-const RELAYS = [
-  "wss://nos.lol",
-  "wss://nostr-pub.wellorder.net",
-  "wss://nostr.mom",
-  "wss://nostr.oxtr.dev",
-];
+const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 
 // HACK: nostr-tools のタイムアウトを長くする
 const temp = setTimeout;
