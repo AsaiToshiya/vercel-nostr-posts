@@ -10,7 +10,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prebuild": "rm -rf public && mkdir public",
-    "build": "node index.js && mv -f index.html ./public",
+    "build": "node index.js && mv -f index.html ./public && cp -f github-markdown.css ./public",
     "deploy": "npm run build && vercel --prod"
   },
   "repository": {
@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.3",
+    "github-markdown-css": "^5.2.0",
     "marked": "^4.2.12",
     "nostr-tools": "^1.3.2",
     "vercel": "^28.15.4",
