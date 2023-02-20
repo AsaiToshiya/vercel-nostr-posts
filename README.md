@@ -45,7 +45,7 @@ Vercel CLI 28.15.4
 ### crontab
 
 ```bash
-0 * * * * export PATH=/usr/local/bin/:$PATH; cd /home/pi/bin/vercel-nostr-posts && npm run deploy > /dev/null 2>&1
+0 * * * * export PATH=/usr/local/bin/:$PATH; export LANG=ja_JP.UTF-8; cd /home/pi/bin/vercel-nostr-posts && npm run deploy > /dev/null 2>&1
 ```
 
 ## npm スクリプト
