@@ -50,7 +50,7 @@ Vercel CLI 28.15.4
 
 ## npm スクリプト
 
-```
+```bash
 $ npm run
 Lifecycle scripts included in vercel-nostr-posts@1.0.0:
   test
