@@ -15,7 +15,7 @@ const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 
 // HACK: nostr-tools のタイムアウトを長くする
 const temp = setTimeout;
-setTimeout = (func) => temp(func, 30 * 1000);
+setTimeout = (func) => temp(func, 60 * 1000);
 
 // 投稿を取得する
 const pool = new SimplePool();
