@@ -3,8 +3,7 @@ import * as fs from "fs";
 import * as dotenv from "dotenv";
 dotenv.config();
 import { marked } from "marked";
-import pkg from "nostr-tools";
-const { SimplePool } = pkg;
+import { SimplePool } from "nostr-tools";
 import "websocket-polyfill";
 
 // 投稿者の公開鍵 (16 進数)
