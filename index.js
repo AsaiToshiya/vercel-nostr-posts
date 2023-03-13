@@ -12,6 +12,47 @@ const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 // リレー サーバー
 const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 
+const generateHashtagHtml = (posts) => {
+  // 日時の降順にソートして、日ごとにグループ化する
+  const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
+  const groupedPosts2 = sortedPosts.reduce((acc1, obj1) => {
+    const tags =
+      obj1.content.match(
+        /(^|\s)#[a-z0-9\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]+/gi
+      ) ?? [];
+    return tags.reduce((acc2, obj2) => {
+      const tag = obj2.trim();
+      const key =
+        Object.keys(acc2).find(
+          (key) => key.toLowerCase() == tag.toLowerCase()
+        ) ?? tag;
+      const curGroup = acc2[key] ?? [];
+      return { ...acc2, [key]: [...curGroup, obj1] };
+    }, acc1);
+  }, {});
+
+  // HTML を作成する
+  return generateHtml(
+    Object.keys(groupedPosts2)
+      .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))
+      .map(
+        (tag) =>
+          `      <h2>${tag}</h2>
+` +
+          groupedPosts2[tag]
+            .map((post) => {
+              const date = new Date(post.created_at * 1000);
+              const dateTime = date.toLocaleString();
+              const content = marked.parse(post.content);
+              return `      <h3>${dateTime}</h3>
+      <p>${content}</p>`;
+            })
+            .join("\n")
+      )
+      .join("\n")
+  );
+};
+
 const generateHtml = (content) =>
   `<!DOCTYPE html>
   <html lang="ja">
@@ -88,50 +129,14 @@ const posts = await pool.list(RELAYS, [
   },
 ]);
 
-// 日時の降順にソートして、日ごとにグループ化する
-const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
-
 // HTML を作成する
 const html = generateIndexHtml(posts);
 
 // ファイルに出力する
 fs.writeFileSync("index.html", html);
 
-const groupedPosts2 = sortedPosts.reduce((acc1, obj1) => {
-  const tags =
-    obj1.content.match(
-      /(^|\s)#[a-z0-9\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]+/gi
-    ) ?? [];
-  return tags.reduce((acc2, obj2) => {
-    const tag = obj2.trim();
-    const key =
-      Object.keys(acc2).find((key) => key.toLowerCase() == tag.toLowerCase()) ??
-      tag;
-    const curGroup = acc2[key] ?? [];
-    return { ...acc2, [key]: [...curGroup, obj1] };
-  }, acc1);
-}, {});
-
 // HTML を作成する
-const html2 = generateHtml(
-  Object.keys(groupedPosts2)
-    .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))
-    .map(
-      (tag) =>
-        `      <h2>${tag}</h2>
-` +
-        groupedPosts2[tag]
-          .map((post) => {
-            const date = new Date(post.created_at * 1000);
-            const dateTime = date.toLocaleString();
-            const content = marked.parse(post.content);
-            return `      <h3>${dateTime}</h3>
-      <p>${content}</p>`;
-          })
-          .join("\n")
-    )
-    .join("\n")
-);
+const html2 = generateHashtagHtml(posts);
 
 // ファイルに出力する
 fs.writeFileSync("hashtag.html", html2);
