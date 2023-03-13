@@ -12,6 +12,38 @@ const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 // リレー サーバー
 const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 
+const generateHtml = (content) =>
+  `<!DOCTYPE html>
+  <html lang="ja">
+    <head>
+      <meta charset="utf8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="github-markdown.css">
+      <style>
+        .markdown-body {
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 45px;
+        }
+      
+        @media (max-width: 767px) {
+          .markdown-body {
+            padding: 15px;
+          }
+        }
+      </style>
+      <title>メモ</title>
+    </head>
+    <body class="markdown-body">
+      <h1>メモ</h1>
+` +
+  content +
+  `
+    </body>
+  </html>`;
+
 // HACK: nostr-tools のタイムアウトを長くする
 const temp = setTimeout;
 setTimeout = (func) => temp(func, 3 * 60 * 1000);
@@ -35,33 +67,7 @@ const groupedPosts = sortedPosts.reduce((acc, obj) => {
 }, {});
 
 // HTML を作成する
-const html =
-  `<!DOCTYPE html>
-  <html lang="ja">
-    <head>
-      <meta charset="utf8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="github-markdown.css">
-      <style>
-        .markdown-body {
-          box-sizing: border-box;
-          min-width: 200px;
-          max-width: 980px;
-          margin: 0 auto;
-          padding: 45px;
-        }
-      
-        @media (max-width: 767px) {
-          .markdown-body {
-            padding: 15px;
-          }
-        }
-      </style>
-      <title>メモ</title>
-    </head>
-    <body class="markdown-body">
-      <h1>メモ</h1>
-` +
+const html = generateHtml(
   Object.keys(groupedPosts)
     .map(
       (postDay) =>
@@ -77,10 +83,8 @@ const html =
           })
           .join("\n")
     )
-    .join("\n") +
-  `
-    </body>
-  </html>`;
+    .join("\n")
+);
 
 // ファイルに出力する
 fs.writeFileSync("index.html", html);
@@ -101,33 +105,7 @@ const groupedPosts2 = sortedPosts.reduce((acc1, obj1) => {
 }, {});
 
 // HTML を作成する
-const html2 =
-  `<!DOCTYPE html>
-  <html lang="ja">
-    <head>
-      <meta charset="utf8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="github-markdown.css">
-      <style>
-        .markdown-body {
-          box-sizing: border-box;
-          min-width: 200px;
-          max-width: 980px;
-          margin: 0 auto;
-          padding: 45px;
-        }
-      
-        @media (max-width: 767px) {
-          .markdown-body {
-            padding: 15px;
-          }
-        }
-      </style>
-      <title>メモ</title>
-    </head>
-    <body class="markdown-body">
-      <h1>メモ</h1>
-` +
+const html2 = generateHtml(
   Object.keys(groupedPosts2)
     .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))
     .map(
@@ -144,10 +122,8 @@ const html2 =
           })
           .join("\n")
     )
-    .join("\n") +
-  `
-    </body>
-  </html>`;
+    .join("\n")
+);
 
 // ファイルに出力する
 fs.writeFileSync("hashtag.html", html2);
