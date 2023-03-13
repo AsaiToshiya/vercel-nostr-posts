@@ -44,6 +44,37 @@ const generateHtml = (content) =>
     </body>
   </html>`;
 
+const generateIndexHtml = (posts) => {
+  // 日時の降順にソートして、日ごとにグループ化する
+  const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
+  const groupedPosts = sortedPosts.reduce((acc, obj) => {
+    const date = new Date(obj.created_at * 1000);
+    const key = date.toLocaleDateString();
+    const curGroup = acc[key] ?? [];
+    return { ...acc, [key]: [...curGroup, obj] };
+  }, {});
+
+  // HTML を作成する
+  return generateHtml(
+    Object.keys(groupedPosts)
+      .map(
+        (postDay) =>
+          `      <h2>${postDay}</h2>
+` +
+          groupedPosts[postDay]
+            .map((post) => {
+              const date = new Date(post.created_at * 1000);
+              const time = date.toLocaleTimeString();
+              const content = marked.parse(post.content);
+              return `      <h3>${time}</h3>
+      <p>${content}</p>`;
+            })
+            .join("\n")
+      )
+      .join("\n")
+  );
+};
+
 // HACK: nostr-tools のタイムアウトを長くする
 const temp = setTimeout;
 setTimeout = (func) => temp(func, 3 * 60 * 1000);
@@ -59,32 +90,9 @@ const posts = await pool.list(RELAYS, [
 
 // 日時の降順にソートして、日ごとにグループ化する
 const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
-const groupedPosts = sortedPosts.reduce((acc, obj) => {
-  const date = new Date(obj.created_at * 1000);
-  const key = date.toLocaleDateString();
-  const curGroup = acc[key] ?? [];
-  return { ...acc, [key]: [...curGroup, obj] };
-}, {});
 
 // HTML を作成する
-const html = generateHtml(
-  Object.keys(groupedPosts)
-    .map(
-      (postDay) =>
-        `      <h2>${postDay}</h2>
-` +
-        groupedPosts[postDay]
-          .map((post) => {
-            const date = new Date(post.created_at * 1000);
-            const time = date.toLocaleTimeString();
-            const content = marked.parse(post.content);
-            return `      <h3>${time}</h3>
-      <p>${content}</p>`;
-          })
-          .join("\n")
-    )
-    .join("\n")
-);
+const html = generateIndexHtml(posts);
 
 // ファイルに出力する
 fs.writeFileSync("index.html", html);
