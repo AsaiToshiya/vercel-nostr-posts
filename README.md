@@ -60,7 +60,7 @@ available via `npm run-script`:
   prebuild
     rm -rf public && mkdir public
   build
-    node index.js && mv -f index.html ./public && cp -f github-markdown.css ./public
+    node index.js && mv -f index.html hashtag.html ./public && cp -f github-markdown.css ./public
   deploy
     npm run build && vercel --prod
 
