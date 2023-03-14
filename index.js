@@ -15,7 +15,7 @@ const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 const generateHashtagHtml = (posts) => {
   // 日時の降順にソートして、タグごとにグループ化する
   const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
-  const groupedPosts2 = sortedPosts.reduce((acc1, obj1) => {
+  const groupedPosts = sortedPosts.reduce((acc1, obj1) => {
     const tags =
       obj1.content.match(
         /(^|\s)#[a-z0-9\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]+/gi
@@ -33,13 +33,13 @@ const generateHashtagHtml = (posts) => {
 
   // HTML を作成する
   return generateHtml(
-    Object.keys(groupedPosts2)
+    Object.keys(groupedPosts)
       .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))
       .map(
         (tag) =>
           `      <h2>${tag}</h2>
 ` +
-          groupedPosts2[tag]
+          groupedPosts[tag]
             .map((post) => {
               const date = new Date(post.created_at * 1000);
               const dateTime = date.toLocaleString();
