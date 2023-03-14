@@ -13,7 +13,7 @@ const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 
 const generateHashtagHtml = (posts) => {
-  // 日時の降順にソートして、日ごとにグループ化する
+  // 日時の降順にソートして、タグごとにグループ化する
   const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
   const groupedPosts2 = sortedPosts.reduce((acc1, obj1) => {
     const tags =
