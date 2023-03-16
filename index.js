@@ -12,6 +12,10 @@ const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 // リレー サーバー
 const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 
+marked.setOptions({
+  breaks: true,
+});
+
 // HACK: nostr-tools のタイムアウトを長くする
 const temp = setTimeout;
 setTimeout = (func) => temp(func, 3 * 60 * 1000);
