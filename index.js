@@ -131,7 +131,6 @@ const posts = await pool.list(RELAYS, [
 
 // ファイルに出力する
 fs.writeFileSync("index.html", generateIndexHtml(posts));
-
 fs.writeFileSync("hashtag.html", generateHashtagHtml(posts));
 
 // await pool.close(RELAYS); // TypeError: Cannot read properties of undefined (reading 'sendCloseFrame')
