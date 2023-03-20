@@ -132,11 +132,8 @@ const posts = await pool.list(RELAYS, [
 // ファイルに出力する
 fs.writeFileSync("index.html", generateIndexHtml(posts));
 
-// HTML を作成する
-const html2 = generateHashtagHtml(posts);
-
 // ファイルに出力する
-fs.writeFileSync("hashtag.html", html2);
+fs.writeFileSync("hashtag.html", generateHashtagHtml(posts));
 
 // await pool.close(RELAYS); // TypeError: Cannot read properties of undefined (reading 'sendCloseFrame')
 process.exit(); // HACK: 強制終了する
