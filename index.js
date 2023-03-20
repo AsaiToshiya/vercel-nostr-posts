@@ -129,11 +129,8 @@ const posts = await pool.list(RELAYS, [
   },
 ]);
 
-// HTML を作成する
-const html = generateIndexHtml(posts);
-
 // ファイルに出力する
-fs.writeFileSync("index.html", html);
+fs.writeFileSync("index.html", generateIndexHtml(posts));
 
 // HTML を作成する
 const html2 = generateHashtagHtml(posts);
