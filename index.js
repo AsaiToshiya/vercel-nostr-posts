@@ -43,7 +43,12 @@ const generateHashtagHtml = (posts) => {
             .map((post) => {
               const date = new Date(post.created_at * 1000);
               const dateTime = date.toLocaleString();
-              const content = marked.parse(post.content);
+              const content = marked.parse(
+                post.content.replace(
+                  /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
+                  '<a href="$1"><img src="$1" loading="lazy"></a>'
+                )
+              );
               return `      <h3>${dateTime}</h3>
       <p>${content}</p>`;
             })
@@ -72,6 +77,16 @@ const generateHtml = (content) =>
         @media (max-width: 767px) {
           .markdown-body {
             padding: 15px;
+          }
+        }
+
+        img {
+          max-width: 600px;
+        }
+
+        @media screen and (max-width: 600px) {
+          img {
+            max-width: 100%;
           }
         }
       </style>
@@ -106,7 +121,12 @@ const generateIndexHtml = (posts) => {
             .map((post) => {
               const date = new Date(post.created_at * 1000);
               const time = date.toLocaleTimeString();
-              const content = marked.parse(post.content);
+              const content = marked.parse(
+                post.content.replace(
+                  /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
+                  '<a href="$1"><img src="$1" loading="lazy"></a>'
+                )
+              );
               return `      <h3>${time}</h3>
       <p>${content}</p>`;
             })
