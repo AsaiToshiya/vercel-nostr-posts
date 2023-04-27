@@ -44,10 +44,15 @@ const generateHashtagHtml = (posts) => {
               const date = new Date(post.created_at * 1000);
               const dateTime = date.toLocaleString();
               const content = marked.parse(
-                post.content.replace(
-                  /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
-                  '<a href="$1"><img src="$1" loading="lazy"></a>'
-                )
+                post.content
+                  .replace(
+                    /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
+                    '<a href="$1"><img src="$1" loading="lazy"></a>'
+                  )
+                  .replace(
+                    /NIP-(\d{2})/g,
+                    '<a href="https://github.com/nostr-protocol/nips/blob/master/$1.md">$&</a>'
+                  )
               );
               return `      <h3>${dateTime}</h3>
       <p>${content}</p>`;
@@ -122,10 +127,15 @@ const generateIndexHtml = (posts) => {
               const date = new Date(post.created_at * 1000);
               const time = date.toLocaleTimeString();
               const content = marked.parse(
-                post.content.replace(
-                  /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
-                  '<a href="$1"><img src="$1" loading="lazy"></a>'
-                )
+                post.content
+                  .replace(
+                    /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
+                    '<a href="$1"><img src="$1" loading="lazy"></a>'
+                  )
+                  .replace(
+                    /NIP-(\d{2})/g,
+                    '<a href="https://github.com/nostr-protocol/nips/blob/master/$1.md">$&</a>'
+                  )
               );
               return `      <h3>${time}</h3>
       <p>${content}</p>`;
