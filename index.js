@@ -138,7 +138,7 @@ const generateIndexHtml = (posts) => {
                   )
               );
               return `      <h3>${time}</h3>
-      <p>${content}</p>`;
+      ${content}`;
             })
             .join("\n")
       )
