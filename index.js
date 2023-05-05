@@ -55,7 +55,7 @@ const generateHashtagHtml = (posts) => {
                   )
               );
               return `      <h3>${dateTime}</h3>
-      <p>${content}</p>`;
+      ${content}`;
             })
             .join("\n")
       )
