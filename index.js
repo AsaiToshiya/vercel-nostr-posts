@@ -53,6 +53,7 @@ const generateHashtagHtml = (posts) => {
                     /NIP-(\d{2})/g,
                     '<a href="https://github.com/nostr-protocol/nips/blob/master/$1.md">$&</a>'
                   )
+                  .replace(/^#+ /g, "\\$&")
               );
               return `      <h3>${dateTime}</h3>
       ${content}`;
@@ -136,6 +137,7 @@ const generateIndexHtml = (posts) => {
                     /NIP-(\d{2})/g,
                     '<a href="https://github.com/nostr-protocol/nips/blob/master/$1.md">$&</a>'
                   )
+                  .replace(/^#+ /g, "\\$&")
               );
               return `      <h3>${time}</h3>
       ${content}`;
