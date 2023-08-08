@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as dotenv from "dotenv";
 dotenv.config();
 import { marked } from "marked";
-import { SimplePool } from "nostr-tools";
+import { SimplePool, nip19 } from "nostr-tools";
 import "websocket-polyfill";
 
 // 投稿者の公開鍵 (16 進数)
@@ -55,7 +55,11 @@ const generateHashtagHtml = (posts) => {
                   )
                   .replace(/^#+ /g, "\\$&")
               );
-              return `      <h3>${dateTime}</h3>
+              return `      <h3><a href="https://snort.social/e/${nip19.neventEncode(
+                {
+                  id: post.id,
+                }
+              )}">${dateTime}</a></h3>
       ${content}`;
             })
             .join("\n")
@@ -139,7 +143,11 @@ const generateIndexHtml = (posts) => {
                   )
                   .replace(/^#+ /g, "\\$&")
               );
-              return `      <h3>${time}</h3>
+              return `      <h3><a href="https://snort.social/e/${nip19.neventEncode(
+                {
+                  id: post.id,
+                }
+              )}">${time}</a></h3>
       ${content}`;
             })
             .join("\n")
