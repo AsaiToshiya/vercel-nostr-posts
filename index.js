@@ -17,9 +17,9 @@ const generateHashtagHtml = (posts) => {
   const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
   const groupedPosts = sortedPosts.reduce((acc1, obj1) => {
     const tags =
-      obj1.content.match(
+      (obj1.content.match(
         /(^|\s)#[a-z0-9\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]+/gi
-      ) ?? [];
+      ) ?? []).filter(tag => !/#\d+/.test(tag));
     return tags.reduce((acc2, obj2) => {
       const tag = obj2.trim();
       const key =
