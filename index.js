@@ -37,7 +37,7 @@ const generateHashtagHtml = (posts) => {
       .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))
       .map(
         (tag) =>
-          `      <h2>${tag}</h2>
+          `      <h2 id="${tag.substring(1)}">${tag}</h2>
 ` +
           groupedPosts[tag]
             .map((post) => {
