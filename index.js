@@ -55,7 +55,7 @@ const generateHashtagHtml = (posts) => {
                   )
                   .replace(/^#+ /g, "\\$&")
               );
-              return `      <h3><a href="https://nostr.com/${nip19.neventEncode(
+              return `      <h3><a href="https://njump.me/${nip19.neventEncode(
                 {
                   id: post.id,
                 }
@@ -143,7 +143,7 @@ const generateIndexHtml = (posts) => {
                   )
                   .replace(/^#+ /g, "\\$&")
               );
-              return `      <h3><a href="https://nostr.com/${nip19.neventEncode(
+              return `      <h3><a href="https://njump.me/${nip19.neventEncode(
                 {
                   id: post.id,
                 }
