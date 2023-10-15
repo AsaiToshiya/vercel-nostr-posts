@@ -16,10 +16,11 @@ const generateHashtagHtml = (posts) => {
   // 日時の降順にソートして、タグごとにグループ化する
   const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
   const groupedPosts = sortedPosts.reduce((acc1, obj1) => {
-    const tags =
-      (obj1.content.match(
+    const tags = (
+      obj1.content.match(
         /(^|\s)#[a-z0-9\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]+/gi
-      ) ?? []).filter(tag => !/#\d+/.test(tag));
+      ) ?? []
+    ).filter((tag) => !/#\d+/.test(tag));
     return tags.reduce((acc2, obj2) => {
       const tag = obj2.trim();
       const key =
@@ -55,11 +56,9 @@ const generateHashtagHtml = (posts) => {
                   )
                   .replace(/^#+ /g, "\\$&")
               );
-              return `      <h3><a href="https://njump.me/${nip19.neventEncode(
-                {
-                  id: post.id,
-                }
-              )}">${dateTime}</a></h3>
+              return `      <h3><a href="https://njump.me/${nip19.neventEncode({
+                id: post.id,
+              })}">${dateTime}</a></h3>
       ${content}`;
             })
             .join("\n")
@@ -143,11 +142,9 @@ const generateIndexHtml = (posts) => {
                   )
                   .replace(/^#+ /g, "\\$&")
               );
-              return `      <h3><a href="https://njump.me/${nip19.neventEncode(
-                {
-                  id: post.id,
-                }
-              )}">${time}</a></h3>
+              return `      <h3><a href="https://njump.me/${nip19.neventEncode({
+                id: post.id,
+              })}">${time}</a></h3>
       ${content}`;
             })
             .join("\n")
