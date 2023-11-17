@@ -12,6 +12,31 @@ const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 // リレー サーバー
 const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 
+const fetchPosts = async (relay, until, olderPost) => {
+  const posts = (
+    await pool.list(
+      [relay],
+      [
+        {
+          authors: [PK],
+          kinds: [1],
+          until,
+          limit: 200,
+        },
+      ]
+    )
+  )
+    .sort((a, b) => b.created_at - a.created_at)
+    .slice(0, 200);
+  const oldestPost = posts[posts.length - 1];
+  return [
+    ...(oldestPost && oldestPost.id !== olderPost?.id
+      ? await fetchPosts(relay, oldestPost.created_at, oldestPost)
+      : []),
+    ...posts,
+  ];
+};
+
 const generateHashtagHtml = (posts) => {
   // 日時の降順にソートして、タグごとにグループ化する
   const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
@@ -163,12 +188,13 @@ setTimeout = (func) => temp(func, 3 * 60 * 1000);
 
 // 投稿を取得する
 const pool = new SimplePool();
-const posts = await pool.list(RELAYS, [
-  {
-    authors: [PK],
-    kinds: [1],
-  },
-]);
+const posts = [
+  ...new Map(
+    (await Promise.all(RELAYS.map(async (relay) => await fetchPosts(relay))))
+      .flat()
+      .map((obj) => [obj.id, obj])
+  ).values(),
+];
 
 // ファイルに出力する
 fs.writeFileSync("index.html", generateIndexHtml(posts));
