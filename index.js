@@ -3,14 +3,22 @@ import * as fs from "fs";
 import * as dotenv from "dotenv";
 dotenv.config();
 import { marked } from "marked";
-import { SimplePool, nip19 } from "nostr-tools";
+import { SimplePool, nip19, nip04 } from "nostr-tools";
 import "websocket-polyfill";
+
+// ReferenceError: crypto is not defined (not in browser) · Issue #192 · nbd-wtf/nostr-tools
+// https://github.com/nbd-wtf/nostr-tools/issues/192#issuecomment-1557401767
+import { webcrypto } from "node:crypto";
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
 
 // 投稿者の公開鍵 (16 進数)
 const PK = "0a2f19dc1a185792c3b0376f1d7f9971295e8932966c397935a5dddd1451a25a";
 
 // リレー サーバー
 const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
+
+// 復号化するための秘密鍵 (16 進数)
+const DECRYPTION_SK = process.env.DECRYPTION_SK;
 
 const fetchPosts = async (relay, until, olderPost) => {
   const posts = (
@@ -188,13 +196,22 @@ setTimeout = (func) => temp(func, 3 * 60 * 1000);
 
 // 投稿を取得する
 const pool = new SimplePool();
-const posts = [
-  ...new Map(
-    (await Promise.all(RELAYS.map(async (relay) => await fetchPosts(relay))))
-      .flat()
-      .map((obj) => [obj.id, obj])
-  ).values(),
-];
+const posts = await Promise.all(
+  [
+    ...new Map(
+      (await Promise.all(RELAYS.map(async (relay) => await fetchPosts(relay))))
+        .flat()
+        .map((obj) => [obj.id, obj])
+    ).values(),
+  ].map(async (post) =>
+    post.tags.find((tag) => tag[0] == "encrypted")
+      ? {
+          ...post,
+          content: await nip04.decrypt(DECRYPTION_SK, PK, post.content),
+        }
+      : post
+  )
+);
 
 // ファイルに出力する
 fs.writeFileSync("index.html", generateIndexHtml(posts));
