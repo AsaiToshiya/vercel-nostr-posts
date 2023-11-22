@@ -20,6 +20,20 @@ const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 // 復号化するための秘密鍵 (16 進数)
 const DECRYPTION_SK = process.env.DECRYPTION_SK;
 
+const _renderContent = (content) =>
+  marked.parse(
+    content
+      .replace(
+        /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
+        '<a href="$1"><img src="$1" loading="lazy"></a>'
+      )
+      .replace(
+        /NIP-(\d{2})/g,
+        '<a href="https://github.com/nostr-protocol/nips/blob/master/$1.md">$&</a>'
+      )
+      .replace(/^#+ /g, "\\$&")
+  );
+
 const fetchPosts = async (relay, until, olderPost) => {
   const posts = (
     await pool.list(
@@ -77,18 +91,7 @@ const generateHashtagHtml = (posts) => {
             .map((post) => {
               const date = new Date(post.created_at * 1000);
               const dateTime = date.toLocaleString();
-              const content = marked.parse(
-                post.content
-                  .replace(
-                    /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
-                    '<a href="$1"><img src="$1" loading="lazy"></a>'
-                  )
-                  .replace(
-                    /NIP-(\d{2})/g,
-                    '<a href="https://github.com/nostr-protocol/nips/blob/master/$1.md">$&</a>'
-                  )
-                  .replace(/^#+ /g, "\\$&")
-              );
+              const content = _renderContent(post.content);
               return `      <h3><a href="https://njump.me/${nip19.neventEncode({
                 id: post.id,
               })}">${dateTime}</a></h3>
@@ -163,18 +166,7 @@ const generateIndexHtml = (posts) => {
             .map((post) => {
               const date = new Date(post.created_at * 1000);
               const time = date.toLocaleTimeString();
-              const content = marked.parse(
-                post.content
-                  .replace(
-                    /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
-                    '<a href="$1"><img src="$1" loading="lazy"></a>'
-                  )
-                  .replace(
-                    /NIP-(\d{2})/g,
-                    '<a href="https://github.com/nostr-protocol/nips/blob/master/$1.md">$&</a>'
-                  )
-                  .replace(/^#+ /g, "\\$&")
-              );
+              const content = _renderContent(post.content);
               return `      <h3><a href="https://njump.me/${nip19.neventEncode({
                 id: post.id,
               })}">${time}</a></h3>
