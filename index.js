@@ -5,6 +5,7 @@ dotenv.config();
 import { marked } from "marked";
 import { SimplePool, nip19, nip04 } from "nostr-tools";
 import "websocket-polyfill";
+import { fetch } from "./nostr-fetch/index.js";
 
 // ReferenceError: crypto is not defined (not in browser) · Issue #192 · nbd-wtf/nostr-tools
 // https://github.com/nbd-wtf/nostr-tools/issues/192#issuecomment-1557401767
@@ -33,31 +34,6 @@ const _renderContent = (content) =>
       )
       .replace(/^#+ /g, "\\$&")
   );
-
-const fetchPosts = async (relay, until, olderPost) => {
-  const posts = (
-    await pool.list(
-      [relay],
-      [
-        {
-          authors: [PK],
-          kinds: [1],
-          until,
-          limit: 200,
-        },
-      ]
-    )
-  )
-    .sort((a, b) => b.created_at - a.created_at)
-    .slice(0, 200);
-  const oldestPost = posts[posts.length - 1];
-  return [
-    ...(oldestPost && oldestPost.id !== olderPost?.id
-      ? await fetchPosts(relay, oldestPost.created_at, oldestPost)
-      : []),
-    ...posts,
-  ];
-};
 
 const generateHashtagHtml = (posts) => {
   // 日時の降順にソートして、タグごとにグループ化する
@@ -189,13 +165,12 @@ setTimeout = (func) => temp(func, 3 * 60 * 1000);
 // 投稿を取得する
 const pool = new SimplePool();
 const posts = await Promise.all(
-  [
-    ...new Map(
-      (await Promise.all(RELAYS.map(async (relay) => await fetchPosts(relay))))
-        .flat()
-        .map((obj) => [obj.id, obj])
-    ).values(),
-  ].map(async (post) =>
+  (
+    await fetch(pool, RELAYS, {
+      authors: [PK],
+      kinds: [1],
+    })
+  ).map(async (post) =>
     post.tags.find((tag) => tag[0] == "encrypted")
       ? {
           ...post,
