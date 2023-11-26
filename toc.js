@@ -9,7 +9,7 @@ const items = [...dom.window.document.querySelectorAll("h2")].map(
 );
 const toc = `
 <div id="toc">
-  <h2>目次</h2>
+  <h2>ハッシュタグ</h2>
   <ul>
     ${items.join("")}
   </ul>
