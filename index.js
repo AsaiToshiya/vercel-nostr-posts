@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as dotenv from "dotenv";
 dotenv.config();
 import { marked } from "marked";
-import { SimplePool, nip19, nip04 } from "nostr-tools";
+import { SimplePool, nip19, nip04, parseReferences } from "nostr-tools";
 import "websocket-polyfill";
 import { fetch } from "./nostr-fetch/index.js";
 
@@ -21,9 +21,9 @@ const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 // 復号化するための秘密鍵 (16 進数)
 const DECRYPTION_SK = process.env.DECRYPTION_SK;
 
-const _renderContent = (content) =>
-  marked.parse(
-    content
+const _renderContent = async (post) => {
+  const content = marked.parse(
+    post.content
       .replace(
         /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
         '<a href="$1"><img src="$1" loading="lazy"></a>'
@@ -35,7 +35,30 @@ const _renderContent = (content) =>
       .replace(/^#+ /g, "\\$&")
   );
 
-const generateHashtagHtml = (posts) => {
+  // メンション
+  const references = parseReferences(post);
+  return await references.reduce(async (acc, obj) => {
+    const { text, profile } = obj;
+    const userJson =
+      profile &&
+      (
+        await pool.get(RELAYS, {
+          authors: [profile.pubkey],
+          kinds: [0],
+          limit: 1,
+        })
+      )?.content;
+    const user = userJson && JSON.parse(userJson);
+    const augmentedReference = user
+      ? `<a href="https://njump.me/${nip19.npubEncode(profile.pubkey)}">@${
+          user.name
+        }</a>`
+      : text;
+    return (await acc).replaceAll(text, augmentedReference);
+  }, content);
+};
+
+const generateHashtagHtml = async (posts) => {
   // 日時の降順にソートして、タグごとにグループ化する
   const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
   const groupedPosts = sortedPosts.reduce((acc1, obj1) => {
@@ -57,25 +80,32 @@ const generateHashtagHtml = (posts) => {
 
   // HTML を作成する
   return generateHtml(
-    Object.keys(groupedPosts)
-      .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))
-      .map(
-        (tag) =>
-          `      <h2 id="${tag.substring(1)}">${tag}</h2>
+    (
+      await Promise.all(
+        Object.keys(groupedPosts)
+          .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))
+          .map(
+            async (tag) =>
+              `      <h2 id="${tag.substring(1)}">${tag}</h2>
 ` +
-          groupedPosts[tag]
-            .map((post) => {
-              const date = new Date(post.created_at * 1000);
-              const dateTime = date.toLocaleString();
-              const content = _renderContent(post.content);
-              return `      <h3><a href="https://njump.me/${nip19.neventEncode({
-                id: post.id,
-              })}">${dateTime}</a></h3>
+              (
+                await Promise.all(
+                  groupedPosts[tag].map(async (post) => {
+                    const date = new Date(post.created_at * 1000);
+                    const dateTime = date.toLocaleString();
+                    const content = await _renderContent(post);
+                    return `      <h3><a href="https://njump.me/${nip19.neventEncode(
+                      {
+                        id: post.id,
+                      }
+                    )}">${dateTime}</a></h3>
       ${content}`;
-            })
-            .join("\n")
+                  })
+                )
+              ).join("\n")
+          )
       )
-      .join("\n")
+    ).join("\n")
   );
 };
 
@@ -121,7 +151,7 @@ const generateHtml = (content) =>
     </body>
   </html>`;
 
-const generateIndexHtml = (posts) => {
+const generateIndexHtml = async (posts) => {
   // 日時の降順にソートして、日ごとにグループ化する
   const sortedPosts = [...posts].sort((a, b) => b.created_at - a.created_at);
   const groupedPosts = sortedPosts.reduce((acc, obj) => {
@@ -133,24 +163,30 @@ const generateIndexHtml = (posts) => {
 
   // HTML を作成する
   return generateHtml(
-    Object.keys(groupedPosts)
-      .map(
-        (postDay) =>
-          `      <h2>${postDay}</h2>
+    (
+      await Promise.all(
+        Object.keys(groupedPosts).map(
+          async (postDay) =>
+            `      <h2>${postDay}</h2>
 ` +
-          groupedPosts[postDay]
-            .map((post) => {
-              const date = new Date(post.created_at * 1000);
-              const time = date.toLocaleTimeString();
-              const content = _renderContent(post.content);
-              return `      <h3><a href="https://njump.me/${nip19.neventEncode({
-                id: post.id,
-              })}">${time}</a></h3>
+            (
+              await Promise.all(
+                groupedPosts[postDay].map(async (post) => {
+                  const date = new Date(post.created_at * 1000);
+                  const time = date.toLocaleTimeString();
+                  const content = await _renderContent(post);
+                  return `      <h3><a href="https://njump.me/${nip19.neventEncode(
+                    {
+                      id: post.id,
+                    }
+                  )}">${time}</a></h3>
       ${content}`;
-            })
-            .join("\n")
+                })
+              )
+            ).join("\n")
+        )
       )
-      .join("\n")
+    ).join("\n")
   );
 };
 
@@ -181,8 +217,8 @@ const posts = await Promise.all(
 );
 
 // ファイルに出力する
-fs.writeFileSync("index.html", generateIndexHtml(posts));
-fs.writeFileSync("hashtag.html", generateHashtagHtml(posts));
+fs.writeFileSync("index.html", await generateIndexHtml(posts));
+fs.writeFileSync("hashtag.html", await generateHashtagHtml(posts));
 
 // await pool.close(RELAYS); // TypeError: Cannot read properties of undefined (reading 'sendCloseFrame')
 process.exit(); // HACK: 強制終了する
