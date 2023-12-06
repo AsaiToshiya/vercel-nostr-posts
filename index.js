@@ -21,8 +21,8 @@ const RELAYS = JSON.parse(process.env.RELAYS.replace(/'/g, '"'));
 // 復号化するための秘密鍵 (16 進数)
 const DECRYPTION_SK = process.env.DECRYPTION_SK;
 
-const _renderContent = async (post) => {
-  const content = marked.parse(
+const _renderContent = async (post) =>
+  marked.parse(
     post.content
       .replace(
         /(https?:\/\/\S+\.(jpg|jpeg|png|webp|avif|gif))/g,
@@ -34,29 +34,6 @@ const _renderContent = async (post) => {
       )
       .replace(/^#+ /g, "\\$&")
   );
-
-  // メンション
-  const references = parseReferences(post);
-  return await references.reduce(async (acc, obj) => {
-    const { text, profile } = obj;
-    const userJson =
-      profile &&
-      (
-        await pool.get(RELAYS, {
-          authors: [profile.pubkey],
-          kinds: [0],
-          limit: 1,
-        })
-      )?.content;
-    const user = userJson && JSON.parse(userJson);
-    const augmentedReference = user
-      ? `<a href="https://njump.me/${nip19.npubEncode(profile.pubkey)}">@${
-          user.name
-        }</a>`
-      : text;
-    return (await acc).replaceAll(text, augmentedReference);
-  }, content);
-};
 
 const generateHashtagHtml = async (posts) => {
   // 日時の降順にソートして、タグごとにグループ化する
@@ -202,18 +179,47 @@ setTimeout = (func) => temp(func, 3 * 60 * 1000);
 const pool = new SimplePool();
 const posts = await Promise.all(
   (
-    await fetch(pool, RELAYS, {
-      authors: [PK],
-      kinds: [1],
-    })
-  ).map(async (post) =>
-    post.tags.find((tag) => tag[0] == "encrypted")
-      ? {
-          ...post,
-          content: await nip04.decrypt(DECRYPTION_SK, PK, post.content),
-        }
-      : post
-  )
+    await Promise.all(
+      (
+        await fetch(pool, RELAYS, {
+          authors: [PK],
+          kinds: [1],
+        })
+      ).map(async (post) =>
+        post.tags.find((tag) => tag[0] == "encrypted")
+          ? {
+              ...post,
+              content: await nip04.decrypt(DECRYPTION_SK, PK, post.content),
+            }
+          : post
+      )
+    )
+  ).map(async (post) => {
+    // メンション
+    const references = parseReferences(post);
+    return {
+      ...post,
+      content: await references.reduce(async (acc, obj) => {
+        const { text, profile } = obj;
+        const userJson =
+          profile &&
+          (
+            await pool.get(RELAYS, {
+              authors: [profile.pubkey],
+              kinds: [0],
+              limit: 1,
+            })
+          )?.content;
+        const user = userJson && JSON.parse(userJson);
+        const augmentedReference = user
+          ? `<a href="https://njump.me/${nip19.npubEncode(profile.pubkey)}">@${
+              user.name
+            }</a>`
+          : text;
+        return (await acc).replaceAll(text, augmentedReference);
+      }, post.content),
+    };
+  })
 );
 
 // ファイルに出力する
