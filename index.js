@@ -68,14 +68,16 @@ const generateHashtagHtml = async (posts) => {
               (
                 await Promise.all(
                   groupedPosts[tag].map(async (post) => {
+                    const nevent = nip19.neventEncode({
+                      id: post.id,
+                    });
+                    const url = hasNostrMenu
+                      ? `https://asaitoshiya.github.io/nostr-menu/?nevent=${nevent}`
+                      : `https://njump.me/${nevent}`;
                     const date = new Date(post.created_at * 1000);
                     const dateTime = date.toLocaleString();
                     const content = await _renderContent(post);
-                    return `      <h3><a href="https://njump.me/${nip19.neventEncode(
-                      {
-                        id: post.id,
-                      }
-                    )}">${dateTime}</a></h3>
+                    return `      <h3><a href="${url}">${dateTime}</a></h3>
       ${content}`;
                   })
                 )
@@ -149,14 +151,16 @@ const generateIndexHtml = async (posts) => {
             (
               await Promise.all(
                 groupedPosts[postDay].map(async (post) => {
+                  const nevent = nip19.neventEncode({
+                    id: post.id,
+                  });
+                  const url = hasNostrMenu
+                    ? `https://asaitoshiya.github.io/nostr-menu/?nevent=${nevent}`
+                    : `https://njump.me/${nevent}`;
                   const date = new Date(post.created_at * 1000);
                   const time = date.toLocaleTimeString();
                   const content = await _renderContent(post);
-                  return `      <h3><a href="https://njump.me/${nip19.neventEncode(
-                    {
-                      id: post.id,
-                    }
-                  )}">${time}</a></h3>
+                  return `      <h3><a href="${url}">${time}</a></h3>
       ${content}`;
                 })
               )
@@ -174,6 +178,8 @@ marked.setOptions({
 // HACK: nostr-tools のタイムアウトを長くする
 const temp = setTimeout;
 setTimeout = (func) => temp(func, 3 * 60 * 1000);
+
+const hasNostrMenu = process.argv.slice(2).includes("--nostr-menu");
 
 // 投稿を取得する
 const pool = new SimplePool();
